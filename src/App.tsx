@@ -4,20 +4,26 @@ import usersFromServer from './api/users';
 import todosFromServer from './api/todos';
 import { TodoList } from './components/TodoList';
 import { useState } from 'react';
-import { TodoFromServer, User } from './types/todo';
+import { Todo, TodoFromServer, User } from './types/todo';
 
 const newTodos: TodoFromServer[] = todosFromServer.map(t => ({ ...t }));
 const users: User[] = usersFromServer.map(u => ({ ...u }));
 
 export const App = () => {
-  const [todos, setTodos] = useState<TodoFromServer[]>(newTodos);
+  const [todos, setTodos] = useState<Todo[]>(() =>
+    newTodos.map(todo => ({
+      ...todo,
+      user: users.find(u => u.id === todo.userId) ?? {
+        id: -1,
+        name: 'Unknown',
+        username: '',
+        email: '',
+      },
+    })),
+  );
   const [title, setTitle] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
   const [errors, setErrors] = useState<{ title?: string; user?: string }>({});
-
-  const onAdd = (newTodo: TodoFromServer) => {
-    setTodos(currentTodo => [...currentTodo, newTodo]);
-  };
 
   const handleSubmit = (event: React.FormEvent) => {
     event.preventDefault();
@@ -33,21 +39,27 @@ export const App = () => {
     }
 
     setErrors(newErrors);
-
     if (Object.keys(newErrors).length > 0) {
       return;
     }
 
     const nextId = todos.length > 0 ? Math.max(...todos.map(t => t.id)) + 1 : 1;
 
-    const newTodo: TodoFromServer = {
+    const selectedUser = users.find(u => u.id === Number(selectedUserId)) ?? {
+      id: -1,
+      name: 'Unknown',
+      username: '',
+      email: '',
+    };
+
+    const newTodo: Todo = {
       id: nextId,
       title: title.trim(),
       completed: false,
-      userId: Number(selectedUserId),
+      user: selectedUser,
     };
 
-    onAdd(newTodo);
+    setTodos(prev => [...prev, newTodo]);
     setTitle('');
     setSelectedUserId('');
     setErrors({});
@@ -104,7 +116,7 @@ export const App = () => {
           Add
         </button>
       </form>
-      <TodoList todos={todos} users={users} />
+      <TodoList todos={todos} />
     </div>
   );
 };

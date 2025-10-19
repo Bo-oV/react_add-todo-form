@@ -1,14 +1,11 @@
-import { TodoFromServer, User } from '../../types/todo';
+import { Todo } from '../../types/todo';
 import { UserInfo } from '../UserInfo';
 
 interface Props {
-  todo: TodoFromServer;
-  users?: User[];
+  todo: Todo;
 }
 
-export const TodoInfo: React.FC<Props> = ({ todo, users = [] }) => {
-  const user = users.find(u => u.id === todo.userId);
-
+export const TodoInfo: React.FC<Props> = ({ todo }) => {
   return (
     <article
       data-id={todo.id}
@@ -16,7 +13,7 @@ export const TodoInfo: React.FC<Props> = ({ todo, users = [] }) => {
     >
       <h2 className="TodoInfo__title">{`${todo.title}`}</h2>
 
-      {user ? <UserInfo user={user} /> : null}
+      {todo.user ? <UserInfo user={todo.user} /> : null}
     </article>
   );
 };

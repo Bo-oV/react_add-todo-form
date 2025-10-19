@@ -1,7 +1,7 @@
 import { User } from '../../types/todo';
 
 interface Props {
-  user?: User; // обов'язково перевіряємо, бо user може бути undefined
+  user?: User;
 }
 
 export const UserInfo: React.FC<Props> = ({ user }) => {
