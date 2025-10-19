@@ -4,23 +4,19 @@ import usersFromServer from './api/users';
 import todosFromServer from './api/todos';
 import { TodoList } from './components/TodoList';
 import { useState } from 'react';
-import { Todo, TodoFromServer, User } from './types/todo';
+import { DEFAULT_USER, Todo, TodoFromServer, User } from './types/todo';
 
-const newTodos: TodoFromServer[] = todosFromServer.map(t => ({ ...t }));
-const users: User[] = usersFromServer.map(u => ({ ...u }));
+const newTodos: TodoFromServer[] = todosFromServer.map(to => ({ ...to }));
+const users: User[] = usersFromServer.map(us => ({ ...us }));
 
 export const App = () => {
   const [todos, setTodos] = useState<Todo[]>(() =>
     newTodos.map(todo => ({
       ...todo,
-      user: users.find(u => u.id === todo.userId) ?? {
-        id: -1,
-        name: 'Unknown',
-        username: '',
-        email: '',
-      },
+      user: users.find(us => us.id === todo.userId) ?? DEFAULT_USER,
     })),
   );
+
   const [title, setTitle] = useState('');
   const [selectedUserId, setSelectedUserId] = useState<number | ''>('');
   const [errors, setErrors] = useState<{ title?: string; user?: string }>({});
@@ -45,17 +41,14 @@ export const App = () => {
 
     const nextId = todos.length > 0 ? Math.max(...todos.map(t => t.id)) + 1 : 1;
 
-    const selectedUser = users.find(u => u.id === Number(selectedUserId)) ?? {
-      id: -1,
-      name: 'Unknown',
-      username: '',
-      email: '',
-    };
+    const selectedUser =
+      users.find(us => us.id === Number(selectedUserId)) ?? DEFAULT_USER;
 
     const newTodo: Todo = {
       id: nextId,
       title: title.trim(),
       completed: false,
+      userId: selectedUser.id,
       user: selectedUser,
     };
 
@@ -76,8 +69,8 @@ export const App = () => {
             placeholder="Enter title"
             type="text"
             data-cy="titleInput"
-            onChange={e => {
-              setTitle(e.target.value);
+            onChange={event => {
+              setTitle(event.target.value);
               if (errors.title) {
                 setErrors(prev => ({ ...prev, title: undefined }));
               }
@@ -90,11 +83,11 @@ export const App = () => {
           <select
             data-cy="userSelect"
             value={selectedUserId}
-            onChange={e => {
+            onChange={event => {
               const value =
-                e.currentTarget.value === ''
+                event.currentTarget.value === ''
                   ? ''
-                  : Number(e.currentTarget.value);
+                  : Number(event.currentTarget.value);
 
               setSelectedUserId(value);
               if (errors.user) {
